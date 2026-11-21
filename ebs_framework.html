@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Práctica AWS EBS · ClínicaVida</title>
+<script>try{if(localStorage.getItem("ebs_ui_theme")==="dark")document.documentElement.classList.add("dark")}catch(e){}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--l1:#f4f4f4;--l2:#e0e0e0;--bd:#e0e0e0;--tx:#161616;--tx2:#525252;--pri:#0f62fe;--lk:#0f62fe;--ok:#198038;--err:#da1e28;--fc:#0f62fe;--md:#fff;
+--blue:#0043ce;--teal:#005d5d;--purple:#6929c4;--red:#a2191f;--gray:#525252;--green:#0e6027;color-scheme:light}
+.dark{--bg:#161616;--l1:#262626;--l2:#393939;--bd:#393939;--tx:#f4f4f4;--tx2:#c6c6c6;--lk:#78a9ff;--ok:#42be65;--fc:#fff;--md:#262626;
+--blue:#78a9ff;--teal:#08bdba;--purple:#be95ff;--red:#ff8389;--gray:#c6c6c6;--green:#42be65;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--tx);font:400 14px/1.43 "IBM Plex Sans","Helvetica Neue",Arial,sans-serif;letter-spacing:.16px}
+:focus-visible{outline:2px solid var(--fc);outline-offset:-2px}
+code,pre,.mono,kbd{font-family:"IBM Plex Mono",Menlo,Consolas,monospace}
+code{background:var(--l1);padding:1px 5px;font-size:12.5px}
+kbd{background:var(--l2);padding:1px 6px;font-size:12px}
+svg.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:square;flex:none}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 16px;border:1px solid transparent;background:none;color:var(--lk);font:inherit;letter-spacing:.16px;cursor:pointer;text-decoration:none}
+.btn.sm{min-height:32px;padding:0 12px;font-size:13px}.btn.block{width:100%;justify-content:space-between}
+.btn.pri{background:var(--pri);color:#fff}.btn.pri:hover{background:#0353e9}
+.btn.ter{border-color:var(--lk)}.btn.ter:hover{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.ghost:hover{background:var(--l2)}.btn.dng{color:var(--err)}.btn.red{background:var(--err);color:#fff}
+/* encabezado */
+.hd{position:sticky;top:0;z-index:30;background:#161616;color:#f4f4f4}
+.hd .row{display:flex;align-items:center;height:48px}
+.hd .btn{color:#f4f4f4;min-height:48px}.hd .btn:hover{background:#2c2c2c}
+.hd h1{font-size:14px;font-weight:600;margin:0 0 0 16px;white-space:nowrap}.hd h1 span{font-weight:400;color:#c6c6c6;margin-left:8px}
+.hd .sp{flex:1}.hd .pg{font-size:13px;margin-right:8px;white-space:nowrap}
+.hd .sv{position:relative}.hd .sv .dot{position:absolute;top:10px;right:8px;width:8px;height:8px;border-radius:50%;background:#f1c21b;display:none}
+.hbar{height:3px;background:#393939}.hbar i{display:block;height:100%;background:#42be65;width:0;transition:width .25s}
+#menu{display:none}
+/* estructura */
+.shell{display:flex}
+.side{width:288px;flex:none;background:var(--l1);border-right:1px solid var(--bd);position:sticky;top:51px;height:calc(100vh - 51px);overflow:auto}
+.pan{padding:24px 16px;border-bottom:1px solid var(--bd)}
+.big{font-size:42px;font-weight:300;line-height:1.1}.big small{font-size:20px;margin-left:2px}
+.mu{color:var(--tx2);font-size:12px;margin:4px 0 0}
+.meter{margin-top:14px}.mh{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px}.mh b{font-weight:600}
+.bar{height:4px;background:var(--l2)}.bar i{display:block;height:100%;background:var(--pri);transition:width .25s}.bar.ok i{background:var(--ok)}
+.pan .btn{margin-top:20px}
+.bk{margin-top:14px;font-size:12px;color:var(--tx2);display:flex;gap:8px;align-items:flex-start}
+.bk .dot{width:8px;height:8px;border-radius:50%;background:#8d8d8d;margin-top:5px;flex:none}.bk .dot.w{background:#f1c21b}.bk .dot.g{background:var(--ok)}
+.nv{padding:8px 0}.nv button{display:flex;width:100%;align-items:center;justify-content:space-between;gap:8px;min-height:40px;padding:0 16px;background:none;border:0;border-left:3px solid transparent;color:var(--tx);font:inherit;text-align:left;cursor:pointer}
+.nv button:hover{background:var(--l2)}.nv button.on{border-left-color:var(--pri);background:var(--l2);font-weight:600}
+.nv .c{font-size:12px;color:var(--tx2);font-variant-numeric:tabular-nums}.nv .c.ok{color:var(--ok)}
+.nv .sub{min-height:32px;padding-left:32px;font-size:13px;color:var(--tx2)}.nv .sub span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+main{flex:1;min-width:0;padding:32px 48px 96px;max-width:960px}
+main h1{font-size:32px;font-weight:300;line-height:1.25;margin:0}.sub1{color:var(--tx2);font-size:16px;margin:4px 0 24px}
+.lead{max-width:70ch;font-size:14px;line-height:1.6}
+.note{border-left:3px solid #f1c21b;background:var(--l1);padding:12px 16px;margin:16px 0}.note ul{margin:6px 0 0;padding-left:18px}
+.acc{border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);margin:16px 0}.acc summary{min-height:48px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+.acc>div{padding:0 0 16px;max-width:75ch;line-height:1.6}.acc p{margin:8px 0}
+.tbl{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}th{background:var(--l1);text-align:left}th,td{padding:10px 12px;border-bottom:1px solid var(--bd);vertical-align:top}
+.flow{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:2px;padding:0;margin:0 0 8px}
+.flow li{background:var(--l1);padding:12px 16px;display:grid;gap:6px;border-top:3px solid var(--pri)}.flow b{font-weight:300;font-size:24px}
+.tg{display:inline-block;padding:2px 8px;border-radius:16px;font-size:12px;line-height:18px;white-space:nowrap;color:var(--c);background:color-mix(in srgb,var(--c) 16%,transparent)}
+/* secciones y pasos */
+.sec{margin-top:48px}.sec>header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.sec h3{font-size:20px;font-weight:400;margin:0;max-width:60ch}.sh{display:flex;gap:12px;align-items:center}.cnt{font-size:13px;font-variant-numeric:tabular-nums}
+.sec>.bar{margin:12px 0 0}.sec.warn h3{color:var(--err)}.sec.warn>.bar i{background:var(--err)}
+.st{display:flex;gap:12px;padding:20px 0 20px 12px;border-bottom:1px solid var(--bd);border-left:3px solid transparent}
+.st.done{border-left-color:var(--ok)}.st.done h4{color:var(--tx2)}
+.st.flash{animation:fl 1.6s}@keyframes fl{0%,60%{background:color-mix(in srgb,var(--pri) 14%,transparent)}}
+.ck{position:relative;width:20px;height:20px;flex:none;margin-top:1px;cursor:pointer}.ck input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.ck i{position:absolute;inset:2px;border:1px solid var(--tx);pointer-events:none}.ck input:checked+i{background:var(--tx)}
+.ck input:checked+i::after{content:"";position:absolute;left:4px;top:0;width:4px;height:9px;border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.ck input:focus-visible+i{outline:2px solid var(--fc);outline-offset:2px}
+.sb{flex:1;min-width:0}.sm{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.cd{font:500 12px "IBM Plex Mono",monospace;color:var(--tx2)}
+.st h4{font-size:16px;font-weight:600;margin:6px 0}.st p{margin:0 0 12px;max-width:70ch;line-height:1.6}
+/* bloque de código */
+.code{background:var(--l1);margin:12px 0}.code-h{display:flex;justify-content:space-between;align-items:center;padding-left:16px;font-size:12px;color:var(--tx2);border-bottom:1px solid var(--bd)}
+.code pre{margin:0;padding:14px 16px;font-size:13px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
+.code pre.clip{max-height:150px;overflow:hidden}.code pre code{background:none;padding:0;font-size:inherit}
+.code .more{margin:0 0 4px 4px}
+/* evidencias */
+.ev{border:1px solid var(--bd);padding:16px;margin-top:8px}.ev.has{border-color:var(--ok)}
+.evh{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}.ev h4{margin:10px 0 0!important}
+.cap{margin:10px 0!important;color:var(--tx2);font-size:13px}.zone{border:1px dashed var(--tx2);padding:20px;text-align:center;outline-offset:-3px}
+.zone.over,.zone:focus{background:color-mix(in srgb,var(--pri) 10%,transparent);border-color:var(--pri)}.zone p{margin:8px 0 12px!important}
+.acts{display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:center;margin-top:6px}.has .acts{justify-content:flex-start}
+.shot{display:block;max-width:100%;max-height:260px;border:1px solid var(--bd);cursor:zoom-in}
+.lb{display:block;font-size:12px;color:var(--tx2);margin:14px 0 4px}
+textarea,select,input[type=text]{width:100%;font:inherit;color:var(--tx);background:var(--l1);border:0;border-bottom:1px solid #8d8d8d;padding:10px 16px;min-height:40px;resize:vertical;letter-spacing:.16px}
+.seg{display:flex;margin:16px 0 8px;flex-wrap:wrap}.seg button{flex:1;min-width:110px;min-height:40px;border:0;border-bottom:2px solid var(--bd);background:none;color:var(--tx2);font:inherit;cursor:pointer}
+.seg button.on{border-bottom-color:var(--pri);color:var(--tx);font-weight:600}.evg{display:grid;gap:16px}
+.q{padding:20px 0;border-bottom:1px solid var(--bd)}.q h4{margin:0 0 8px;font-size:16px;font-weight:600;max-width:70ch;line-height:1.4}.q details{margin:8px 0 12px;font-size:13px;color:var(--tx2);max-width:70ch}.q summary{cursor:pointer;color:var(--lk)}
+/* modales y toasts */
+.ov{position:fixed;inset:0;background:rgba(22,22,22,.6);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}.ov.on{display:flex}
+.md{background:var(--md);width:100%;max-width:560px;max-height:92vh;overflow:auto;display:flex;flex-direction:column}
+.md.wide{max-width:1000px}.md h2{margin:0;padding:16px 56px 0 16px;font-size:20px;font-weight:400}.mb{padding:16px;display:grid;gap:16px}
+.mf{display:flex;justify-content:flex-end;margin-top:8px}.mf .btn{min-width:160px;min-height:64px;align-items:flex-start;padding-top:16px}
+.x{position:absolute;right:0;top:0}.md{position:relative}
+.rt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.rt label{border:1px solid var(--bd);padding:12px;cursor:pointer;display:grid;gap:2px}
+.rt label:has(input:checked){border:2px solid var(--pri);padding:11px}.rt input{position:absolute;opacity:0}.rt b{font-weight:600}.rt span{font-size:12px;color:var(--tx2)}
+.fl{display:grid;grid-template-columns:1fr 1fr;gap:12px}.fl label{font-size:12px;color:var(--tx2)}
+.toasts{position:fixed;right:16px;bottom:16px;display:grid;gap:8px;z-index:60}
+.toast{background:var(--tx);color:var(--bg);border-left:3px solid var(--c,#4589ff);padding:12px 16px;min-width:240px;max-width:380px;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+@media(max-width:1055px){#menu{display:inline-flex}.side{position:fixed;left:0;top:51px;z-index:25;transform:translateX(-100%);transition:transform .2s;width:300px}.side.open{transform:none}
+main{padding:24px 16px 80px}.hd .lbl{display:none}.hd h1 span{display:none}.fl,.rt{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="hd">
+  <div class="row">
+    <button class="btn" id="menu" aria-label="Abrir navegación" onclick="document.querySelector('.side').classList.toggle('open')"></button>
+    <h1>Práctica AWS EBS<span>ClínicaVida · us-east-1</span></h1>
+    <div class="sp"></div>
+    <span class="pg" id="hp"></span>
+    <button class="btn sv" onclick="saveProgress()" title="Guardar progreso (descarga un .json)" id="b-save"><span class="dot" id="sdot"></span><span class="lbl">Guardar progreso</span></button>
+    <button class="btn" onclick="$('#imp').click()" title="Cargar progreso desde un .json" id="b-load"><span class="lbl">Cargar progreso</span></button>
+    <input type="file" id="imp" accept=".json,application/json" hidden onchange="loadProgress(event)">
+    <button class="btn" onclick="openExport()" title="Exportar reporte (Ctrl+E)" id="b-exp"><span class="lbl">Reporte</span></button>
+    <button class="btn" onclick="toggleTheme()" title="Cambiar tema" id="b-th"></button>
+    <button class="btn" onclick="openOv('reset-ov')" title="Reiniciar práctica" id="b-rs"></button>
+  </div>
+  <div class="hbar"><i id="hbar"></i></div>
+</header>
+<div class="shell"><aside class="side" id="side"></aside><main id="main"></main></div>
+
+<div class="ov" id="lb-ov" onclick="if(event.target===this)closeOv('lb-ov')"><div class="md wide"><button class="btn x" onclick="closeOv('lb-ov')" aria-label="Cerrar" id="lb-x"></button><h2 id="lb-t"></h2>
+  <div class="mb"><img id="lb-img" alt="" style="max-width:100%;max-height:70vh;margin:auto"><div class="mf" style="justify-content:flex-start;margin:0"><button class="btn ter sm" id="lb-dl">Descargar</button></div></div></div></div>
+
+<div class="ov" id="export-modal" onclick="if(event.target===this)closeOv('export-modal')"><div class="md"><button class="btn x" onclick="closeOv('export-modal')" aria-label="Cerrar" id="ex-x"></button><h2>Exportar reporte final</h2>
+  <div class="mb">
+    <div class="rt"><label><input type="radio" name="exp-format" value="html" checked><b>HTML</b><span>Autocontenido</span></label><label><input type="radio" name="exp-format" value="md"><b>Markdown</b><span>.zip con imágenes</span></label><label><input type="radio" name="exp-format" value="pdf"><b>PDF</b><span>Diálogo de impresión</span></label></div>
+    <div><label class="lb" for="export-theme">Estilo visual del reporte</label><select id="export-theme"></select></div>
+    <div class="fl"><div><label class="lb" for="export-student-name">Estudiante / equipo</label><input type="text" id="export-student-name"></div><div><label class="lb" for="export-student-group">Matrícula / grupo / materia</label><input type="text" id="export-student-group"></div></div>
+    <p class="mu" id="export-summary-pill"></p></div>
+  <div class="mf"><button class="btn ghost" style="min-width:120px;min-height:64px;align-items:flex-start;padding-top:16px" onclick="closeOv('export-modal')">Cancelar</button><button class="btn pri" onclick="runExport()">Generar reporte</button></div></div></div>
+
+<div class="ov" id="reset-ov" onclick="if(event.target===this)closeOv('reset-ov')"><div class="md"><h2>¿Reiniciar toda la práctica?</h2>
+  <div class="mb"><p style="margin:0">Se borrarán pasos completados, notas, respuestas y capturas guardadas en este navegador. Si no has guardado un .json, no podrás recuperarlas.</p></div>
+  <div class="mf"><button class="btn ghost" style="min-width:120px;min-height:64px;align-items:flex-start;padding-top:16px" onclick="closeOv('reset-ov')">Cancelar</button><button class="btn red" onclick="confirmReset()">Borrar y reiniciar</button></div></div></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+    const EVIDENCES_META = {
+      E01: {
+        id: 'E01',
+        part: 'Parte 1',
+        tab: 'tab1',
+        stepId: 'step-1-2-7',
+        fileName: 'P1-E01-lsblk-huellas.png',
+        env: 'EC2 Instance Connect',
+        title: 'Evidencia 1 — Volumen EBS montado y huellas SHA-256 iniciales',
+        whatToCapture: 'Salida en terminal de lsblk -o NAME,SIZE,SERIAL,FSTYPE,MOUNTPOINT (mostrando nvme1n1 de 1G formateado en xfs y montado en /datos) y cat ~/huellas.txt (mostrando los dos hashes SHA-256 de pacientes.csv y receta-P002.txt).',
+        command: 'lsblk -o NAME,SIZE,SERIAL,FSTYPE,MOUNTPOINT && cat ~/huellas.txt'
+      },
+      E02: {
+        id: 'E02',
+        part: 'Parte 1',
+        tab: 'tab1',
+        stepId: 'step-1-3-1',
+        fileName: 'P1-E02-cloudshell-volumenes.png',
+        env: 'AWS CloudShell',
+        title: 'Evidencia 2 — Estado inicial de volúmenes y cifrado por defecto en CloudShell',
+        whatToCapture: 'Tabla de volúmenes en CloudShell mostrando vol-expedientes con Cifrado = False en us-east-1a, junto con la salida de get-ebs-encryption-by-default.',
+        command: 'aws ec2 describe-volumes --query "Volumes[].{ID:VolumeId,Nombre:Tags[?Key==\'Name\']|[0].Value,Zona:AvailabilityZone,Cifrado:Encrypted,Estado:State}" --output table && aws ec2 get-ebs-encryption-by-default'
+      },
+      E03: {
+        id: 'E03',
+        part: 'Parte 2',
+        tab: 'tab2',
+        stepId: 'step-2-2-2',
+        fileName: 'P2-E03-ataque-ls-datos.png',
+        env: 'EC2 Instance Connect',
+        title: 'Evidencia 3 — Directorio /datos tras el ataque simulado de ransomware',
+        whatToCapture: 'Salida de ls -l /datos evidenciando la nota de rescate LEEME-RESCATE.txt y los archivos originales sustituidos por pacientes.csv.cifrado y receta-P002.txt.cifrado.',
+        command: 'echo "Tus expedientes fueron cifrados. Paga 2 BTC." > /datos/LEEME-RESCATE.txt && ls -l /datos'
+      },
+      E04: {
+        id: 'E04',
+        part: 'Parte 2',
+        tab: 'tab2',
+        stepId: 'step-2-2-3',
+        fileName: 'P2-E04-cabecera-salted.png',
+        env: 'EC2 Instance Connect',
+        title: 'Evidencia 4 — Cabecera binaria cifrada (Salted__) con OpenSSL',
+        whatToCapture: 'Salida del comando head/od mostrando los primeros 32 bytes ilegibles del archivo cifrado iniciando con la firma S a l t e d _ _.',
+        command: 'head -c 32 /datos/pacientes.csv.cifrado | od -An -c'
+      },
+      E05: {
+        id: 'E05',
+        part: 'Parte 2',
+        tab: 'tab2',
+        stepId: 'step-2-4-2',
+        fileName: 'P2-E05-error-uuid-dmesg.png',
+        env: 'EC2 Instance Connect',
+        title: 'Evidencia 5 — Rechazo de montaje por UUID duplicado en XFS (dmesg)',
+        whatToCapture: 'Error de mount al intentar montar vol-restaurado sin -o nouuid junto con la salida de sudo dmesg | tail -3 mostrando "Filesystem has duplicate UUID".',
+        command: 'DEV2=/dev/nvme2n1 && sudo mkdir -p /restaurado && sudo mount $DEV2 /restaurado; sudo dmesg | tail -3'
+      },
+      E06: {
+        id: 'E06',
+        part: 'Parte 2',
+        tab: 'tab2',
+        stepId: 'step-2-4-3',
+        fileName: 'P2-E06-recuperacion-sha256-ok.png',
+        env: 'EC2 Instance Connect',
+        title: 'Evidencia 6 — Verificación de integridad SHA-256 (OK) y recuperación de /datos',
+        whatToCapture: 'Listado de /restaurado y las dos comprobaciones de sha256sum -c terminadas en OK confirmando que /datos quedó recuperado íntegramente.',
+        command: 'sudo mount -o nouuid $DEV2 /restaurado && ls -l /restaurado && sed \'s#/datos/#/restaurado/#\' ~/huellas.txt | sha256sum -c && rm -f /datos/* && cp /restaurado/* /datos/ && sha256sum -c ~/huellas.txt'
+      },
+      E07: {
+        id: 'E07',
+        part: 'Parte 3',
+        tab: 'tab3',
+        stepId: 'step-3-2-2',
+        fileName: 'P3-E07-cifrado-predeterminado-cli.png',
+        env: 'AWS CloudShell',
+        title: 'Evidencia 7 — Cifrado predeterminado de EBS activo y prueba automática',
+        whatToCapture: 'Salida de CloudShell mostrando "EbsEncryptionByDefault": true, el volumen de prueba creado sin especificar cifrado devolviendo true y su KmsKeyId, y "Volumen de prueba eliminado".',
+        command: 'aws ec2 get-ebs-encryption-by-default && PRUEBA=$(aws ec2 create-volume --availability-zone us-east-1a --size 1 --volume-type gp3 --query VolumeId --output text) && echo "Creado: $PRUEBA" && aws ec2 describe-volumes --volume-ids $PRUEBA --query \'Volumes[0].[VolumeId,Encrypted,KmsKeyId]\' && aws ec2 wait volume-available --volume-ids $PRUEBA && aws ec2 delete-volume --volume-id $PRUEBA && echo "Volumen de prueba eliminado"'
+      },
+      E08: {
+        id: 'E08',
+        part: 'Parte 3',
+        tab: 'tab3',
+        stepId: 'step-4-1',
+        fileName: 'P3-E08-bloqueo-publico-cli.png',
+        env: 'AWS CloudShell',
+        title: 'Evidencia 8 — Bloqueo de acceso público a instantáneas (block-all-sharing)',
+        whatToCapture: 'Comandos en CloudShell mostrando el cambio de "unblocked" a "block-all-sharing" y el mensaje de error de AWS rechazando modify-snapshot-attribute con --group-names all.',
+        command: 'SNAP=$(aws ec2 describe-snapshots --owner-ids self --filters Name=tag:Name,Values=snap-expedientes-v1 --query \'Snapshots[0].SnapshotId\' --output text) && echo "Snapshot: $SNAP" && aws ec2 get-snapshot-block-public-access-state && aws ec2 enable-snapshot-block-public-access --state block-all-sharing && aws ec2 modify-snapshot-attribute --snapshot-id $SNAP --attribute createVolumePermission --operation-type add --group-names all'
+      },
+      E09: {
+        id: 'E09',
+        part: 'Parte 3',
+        tab: 'tab3',
+        stepId: 'step-4-2',
+        fileName: 'P3-E09-bloqueo-publico-consola.png',
+        env: 'Consola AWS',
+        title: 'Evidencia 9 — Confirmación visual del bloqueo de acceso público en Consola EC2',
+        whatToCapture: 'Pantalla de Panel de EC2 > Atributos de la cuenta > Protección y seguridad de datos mostrando que "Bloquear el acceso público a las instantáneas de EBS" está activo (Bloquear todo el uso compartido).',
+        command: null
+      }
+    };
+
+    const CURRICULUM = {
+      tab1: [
+        {
+          id: 'sub-0',
+          title: 'Subsección 0 — Preparación de la instancia (10 min)',
+          badge: 'Consola AWS',
+          description: 'Aprovisionamiento de la instancia EC2 base en la región Norte de Virginia (us-east-1) y zona us-east-1a.',
+          steps: [
+            {
+              id: 'step-0-1',
+              code: 'Paso 0.1',
+              env: 'Consola AWS',
+              title: 'Verificar región de trabajo',
+              text: 'En la barra superior derecha de la Consola de AWS, verifica que la región seleccionada sea <strong>EE. UU. Este (Norte de Virginia / us-east-1)</strong>.'
+            },
+            {
+              id: 'step-0-2',
+              code: 'Paso 0.2',
+              env: 'Consola AWS',
+              title: 'Configurar detalles básicos de la instancia clinicavida-app',
+              text: 'Ve a <strong>EC2 &gt; Instancias &gt; Lanzar instancias</strong>:<br>• <strong>Nombre:</strong> <code class="font-mono text-amber-300">clinicavida-app</code><br>• <strong>AMI:</strong> Amazon Linux 2023<br>• <strong>Tipo de instancia:</strong> <code class="font-mono text-amber-300">t3.micro</code> (apto para capa gratuita)<br>• <strong>Par de claves:</strong> Selecciona <em>Continuar sin un par de claves</em> (usaremos EC2 Instance Connect).'
+            },
+            {
+              id: 'step-0-3',
+              code: 'Paso 0.3',
+              env: 'Consola AWS',
+              title: 'Configurar subred en us-east-1a y Grupo de Seguridad restringido',
+              text: 'En <strong>Configuración de red &gt; Editar</strong>:<br>• Selecciona explícitamente la subred ubicada en <strong><code class="font-mono text-amber-300">us-east-1a</code></strong> (anota esta zona: todos los volúmenes EBS deben crearse en la misma AZ).<br>• Crea un grupo de seguridad nuevo llamado <code class="font-mono text-amber-300">sgClinicavida</code> con regla <strong>SSH (puerto 22)</strong>, Origen: <strong>Personalizado</strong> &rarr; lista de prefijos <code class="font-mono text-sky-300">com.amazonaws.us-east-1.ec2-instance-connect</code> (nunca abrir SSH a 0.0.0.0/0).'
+            },
+            {
+              id: 'step-0-4',
+              code: 'Paso 0.4',
+              env: 'Consola AWS',
+              title: 'Verificar almacenamiento raíz y lanzar instancia',
+              text: 'En <strong>Configurar almacenamiento</strong>, deja el volumen raíz predeterminado de <strong>8 GiB gp3</strong> y pulsa <strong>Lanzar instancia</strong>.'
+            }
+          ]
+        },
+        {
+          id: 'sub-1-1',
+          title: 'Subsección 1.1 — Revisar configuración inicial de la cuenta',
+          badge: 'Consola AWS',
+          description: 'Diagnóstico del estado inicial de cifrado predeterminado y exposición pública de instantáneas.',
+          steps: [
+            {
+              id: 'step-1-1-1',
+              code: 'Paso 1.1.1',
+              env: 'Consola AWS',
+              title: 'Inspeccionar Atributos de la cuenta en EC2',
+              text: 'Ve a <strong>EC2 &gt; Panel</strong>, desplázate hasta abajo a <strong>Atributos de la cuenta &gt; Protección y seguridad de datos</strong>. Revisa los estados actuales de <em>Cifrado de EBS</em> y <em>Bloquear el acceso público para las instantáneas de EBS</em>.'
+            }
+          ]
+        },
+        {
+          id: 'sub-1-2',
+          title: 'Subsección 1.2 — Crear, asociar, formatear y montar volumen sin cifrar',
+          badge: 'Consola AWS + EC2 Instance Connect',
+          description: 'Creación del disco de datos de 1 GiB sin cifrar, formateo XFS, montaje en /datos y generación de registros médicos.',
+          steps: [
+            {
+              id: 'step-1-2-1',
+              code: 'Paso 1.2.1',
+              env: 'Consola AWS',
+              title: 'Crear y asociar vol-expedientes (1 GiB, sin cifrar)',
+              text: 'Ve a <strong>EC2 &gt; Elastic Block Store &gt; Volúmenes &gt; Crear volumen</strong>:<br>• <strong>Tipo:</strong> SSD de uso general (<code class="font-mono text-amber-300">gp3</code>) | <strong>Tamaño:</strong> <code class="font-mono text-amber-300">1 GiB</code> | <strong>Zona de disponibilidad:</strong> <code class="font-mono text-amber-300">us-east-1a</code><br>• <strong>Cifrado:</strong> Deja la casilla <em>"Cifrar este volumen"</em> <strong>DESMARCADA</strong>.<br>• <strong>Etiqueta:</strong> Clave <code class="font-mono text-amber-300">Name</code> = Valor <code class="font-mono text-amber-300">vol-expedientes</code>.<br>Espera a que el estado cambie a <em>Disponible</em> &rarr; <strong>Acciones &gt; Asociar volumen</strong> &rarr; Instancia <code class="font-mono text-amber-300">clinicavida-app</code>, dispositivo <code class="font-mono text-amber-300">/dev/sdf</code>.'
+            },
+            {
+              id: 'step-1-2-2',
+              code: 'Paso 1.2.2',
+              env: 'EC2 Instance Connect',
+              title: 'Conectar a la instancia y listar dispositivos de bloque',
+              text: 'Selecciona <code class="font-mono text-amber-300">clinicavida-app</code> &gt; <strong>Conectar &gt; EC2 Instance Connect &gt; Conectar</strong>. Verifica que <code class="font-mono text-sky-300">nvme0n1</code> (8G) es el disco raíz y <code class="font-mono text-sky-300">nvme1n1</code> (1G) está sin montar:',
+              command: 'lsblk -o NAME,SIZE,SERIAL,FSTYPE,MOUNTPOINT'
+            },
+            {
+              id: 'step-1-2-3',
+              code: 'Paso 1.2.3',
+              env: 'EC2 Instance Connect',
+              title: 'Verificar que el volumen nuevo no tiene formato previo',
+              text: 'Guarda la ruta del dispositivo y comprueba su cabecera (debe responder <code class="font-mono text-emerald-400">data</code>):',
+              command: 'DEV=/dev/nvme1n1 && sudo file -s $DEV'
+            },
+            {
+              id: 'step-1-2-4',
+              code: 'Paso 1.2.4',
+              env: 'EC2 Instance Connect',
+              title: 'Formatear en XFS, montar en /datos y asignar propietario',
+              text: 'Crea el sistema de archivos XFS sobre <code class="font-mono text-sky-300">$DEV</code>, créalo en <code class="font-mono text-sky-300">/datos</code> y otorga permisos a <code class="font-mono text-sky-300">ec2-user</code>:',
+              command: 'sudo mkfs -t xfs $DEV && sudo mkdir -p /datos && sudo mount $DEV /datos && sudo chown ec2-user:ec2-user /datos'
+            },
+            {
+              id: 'step-1-2-5',
+              code: 'Paso 1.2.5',
+              env: 'EC2 Instance Connect',
+              title: 'Cargar el archivo CSV de expedientes de pacientes',
+              text: 'Copia y pega este bloque completo para crear <code class="font-mono text-sky-300">/datos/pacientes.csv</code>:',
+              command: "cat > /datos/pacientes.csv <<'EOF'\nid,nombre,curp_ficticia,diagnostico\nP001,Ana López Ruiz,LORA900101MJCXXX01,Hipertensión\nP002,Luis Pérez Gil,PEGL850505HJCXXX02,Diabetes tipo 2\nP003,Rosa Díaz Mora,DIMR920712MJCXXX03,Asma\nEOF"
+            },
+            {
+              id: 'step-1-2-6',
+              code: 'Paso 1.2.6',
+              env: 'EC2 Instance Connect',
+              title: 'Crear receta médica y validar archivos creados',
+              text: 'Genera <code class="font-mono text-sky-300">receta-P002.txt</code> y lista el contenido de <code class="font-mono text-sky-300">/datos</code>:',
+              command: 'echo "Receta P002: Metformina 850 mg c/12 h" > /datos/receta-P002.txt && ls -l /datos && cat /datos/pacientes.csv'
+            },
+            {
+              id: 'step-1-2-7',
+              code: 'Paso 1.2.7',
+              env: 'EC2 Instance Connect',
+              title: 'Calcular huellas SHA-256 de integridad y sincronizar disco',
+              text: 'Genera las sumas de verificación SHA-256 en <code class="font-mono text-sky-300">~/huellas.txt</code> y fuerza el volcado de búferes al disco (<code class="font-mono text-sky-300">sync</code>):',
+              command: 'sha256sum /datos/* > ~/huellas.txt && cat ~/huellas.txt && sync',
+              evidenceId: 'E01'
+            }
+          ]
+        },
+        {
+          id: 'sub-1-3',
+          title: 'Subsección 1.3 — Consultar estado de volúmenes desde CloudShell',
+          badge: 'AWS CloudShell',
+          description: 'Auditoría vía AWS CLI del estado sin cifrar de vol-expedientes y del parámetro de cuenta.',
+          steps: [
+            {
+              id: 'step-1-3-1',
+              code: 'Paso 1.3.1',
+              env: 'AWS CloudShell',
+              title: 'Ejecutar consulta de volúmenes y cifrado predeterminado en CloudShell',
+              text: 'Abre <strong>AWS CloudShell</strong> (icono <code class="font-mono bg-slate-800 px-1.5 py-0.5 rounded text-amber-300">&gt;_</code> en la barra superior de AWS) y ejecuta el siguiente comando:',
+              command: 'aws ec2 describe-volumes --query "Volumes[].{ID:VolumeId,Nombre:Tags[?Key==\'Name\']|[0].Value,Zona:AvailabilityZone,Cifrado:Encrypted,Estado:State}" --output table && aws ec2 get-ebs-encryption-by-default',
+              evidenceId: 'E02'
+            }
+          ]
+        }
+      ],
+
+      tab2: [
+        {
+          id: 'sub-2-1',
+          title: 'Subsección 2.1 — Crear instantánea «antes del incidente»',
+          badge: 'AWS CloudShell',
+          description: 'Generación de un punto de restauración inmutable (snapshot) antes de simular el ataque.',
+          steps: [
+            {
+              id: 'step-2-1-1',
+              code: 'Paso 2.1.1',
+              env: 'AWS CloudShell',
+              title: 'Obtener el VolumeId de vol-expedientes',
+              text: 'Consulta el ID del volumen etiquetado como <code class="font-mono text-amber-300">vol-expedientes</code> (si imprime <code class="font-mono text-rose-400">None</code>, verifica la etiqueta Name en la consola):',
+              command: 'VOL=$(aws ec2 describe-volumes --filters Name=tag:Name,Values=vol-expedientes --query \'Volumes[0].VolumeId\' --output text) && echo $VOL'
+            },
+            {
+              id: 'step-2-1-2',
+              code: 'Paso 2.1.2',
+              env: 'AWS CloudShell',
+              title: 'Crear la instantánea snap-expedientes-v1',
+              text: 'Crea el snapshot con descripción y etiquetas de clasificación:',
+              command: 'SNAP=$(aws ec2 create-snapshot --volume-id $VOL --description "Expedientes antes del incidente" --tag-specifications \'ResourceType=snapshot,Tags=[{Key=Name,Value=snap-expedientes-v1},{Key=clasificacion,Value=expedientes}]\' --query SnapshotId --output text) && echo $SNAP'
+            },
+            {
+              id: 'step-2-1-3',
+              code: 'Paso 2.1.3',
+              env: 'AWS CloudShell',
+              title: 'Esperar a que la instantánea quede completada (1–2 min)',
+              text: '<strong>Importante:</strong> No avances al ataque simulado hasta que la terminal imprima <code class="font-mono text-emerald-400">Instantánea lista: snap-...</code>:',
+              command: 'aws ec2 wait snapshot-completed --snapshot-ids $SNAP && echo "Instantánea lista: $SNAP"'
+            }
+          ]
+        },
+        {
+          id: 'sub-2-2',
+          title: 'Subsección 2.2 — Simular ataque de ransomware en la instancia',
+          badge: 'EC2 Instance Connect',
+          description: 'Cifrado malicioso de los expedientes clínicos con OpenSSL y generación de nota de rescate.',
+          steps: [
+            {
+              id: 'step-2-2-1',
+              code: 'Paso 2.2.1',
+              env: 'EC2 Instance Connect',
+              title: 'Secuestrar y cifrar archivos con AES-256-CBC',
+              text: 'En la pestaña de <strong>EC2 Instance Connect</strong>, cifra ambos archivos con clave desconocida y elimina los originales:',
+              command: 'cd /datos && for f in pacientes.csv receta-P002.txt; do openssl enc -aes-256-cbc -pbkdf2 -pass pass:rescate -in "$f" -out "$f.cifrado" && rm -f "$f"; done'
+            },
+            {
+              id: 'step-2-2-2',
+              code: 'Paso 2.2.2',
+              env: 'EC2 Instance Connect',
+              title: 'Dejar nota de rescate y listar el directorio afectado',
+              text: 'Crea <code class="font-mono text-rose-400">LEEME-RESCATE.txt</code> y lista <code class="font-mono text-sky-300">/datos</code>:',
+              command: 'echo "Tus expedientes fueron cifrados. Paga 2 BTC." > /datos/LEEME-RESCATE.txt && ls -l /datos',
+              evidenceId: 'E03'
+            },
+            {
+              id: 'step-2-2-3',
+              code: 'Paso 2.2.3',
+              env: 'EC2 Instance Connect',
+              title: 'Inspeccionar la cabecera binaria cifrada',
+              text: 'Verifica que el contenido ya no es texto plano sino binario cifrado con cabecera <code class="font-mono text-amber-300">Salted__</code>:',
+              command: 'head -c 32 /datos/pacientes.csv.cifrado | od -An -c',
+              evidenceId: 'E04'
+            }
+          ]
+        },
+        {
+          id: 'sub-2-3',
+          title: 'Subsección 2.3 — Restaurar volumen desde la instantánea',
+          badge: 'Consola AWS',
+          description: 'Creación de un nuevo volumen EBS limpio a partir de snap-expedientes-v1 y asociación a EC2.',
+          steps: [
+            {
+              id: 'step-2-3-1',
+              code: 'Paso 2.3.1',
+              env: 'Consola AWS',
+              title: 'Crear volumen vol-restaurado desde snap-expedientes-v1',
+              text: 'Ve a <strong>EC2 &gt; Elastic Block Store &gt; Instantáneas</strong> &rarr; selecciona <code class="font-mono text-amber-300">snap-expedientes-v1</code> &gt; <strong>Acciones &gt; Crear volumen a partir de una instantánea</strong>:<br>• <strong>Tipo:</strong> <code class="font-mono text-amber-300">gp3</code> | <strong>Zona:</strong> <code class="font-mono text-amber-300">us-east-1a</code> | <strong>Etiqueta:</strong> <code class="font-mono text-amber-300">Name = vol-restaurado</code>.'
+            },
+            {
+              id: 'step-2-3-2',
+              code: 'Paso 2.3.2',
+              env: 'Consola AWS',
+              title: 'Asociar vol-restaurado a clinicavida-app',
+              text: 'En <strong>Volúmenes</strong>, espera a que <code class="font-mono text-amber-300">vol-restaurado</code> pase de <em>Creando</em> a <em>Disponible</em> &rarr; <strong>Acciones &gt; Asociar volumen</strong> &rarr; Instancia <code class="font-mono text-amber-300">clinicavida-app</code>, dispositivo <code class="font-mono text-amber-300">/dev/sdg</code>. Espera estado <em>En uso</em>.'
+            }
+          ]
+        },
+        {
+          id: 'sub-2-4',
+          title: 'Subsección 2.4 — Montar respaldo, comprobar UUID y recuperar datos',
+          badge: 'EC2 Instance Connect',
+          description: 'Montaje temporal con -o nouuid y validación criptográfica SHA-256 de los expedientes restaurados.',
+          steps: [
+            {
+              id: 'step-2-4-1',
+              code: 'Paso 2.4.1',
+              env: 'EC2 Instance Connect',
+              title: 'Identificar el nuevo dispositivo de bloque (nvme2n1)',
+              text: 'Verifica que aparece el nuevo disco de 1G con sistema de archivos <code class="font-mono text-sky-300">xfs</code> y sin punto de montaje:',
+              command: 'lsblk -o NAME,SIZE,SERIAL,FSTYPE,MOUNTPOINT'
+            },
+            {
+              id: 'step-2-4-2',
+              code: 'Paso 2.4.2',
+              env: 'EC2 Instance Connect',
+              title: 'Probar montaje estándar (fallo esperado por UUID duplicado) y ver dmesg',
+              text: 'Intenta montar <code class="font-mono text-sky-300">/dev/nvme2n1</code> en <code class="font-mono text-sky-300">/restaurado</code> sin opciones especiales y revisa el registro del kernel:',
+              command: 'DEV2=/dev/nvme2n1 && sudo mkdir -p /restaurado && sudo mount $DEV2 /restaurado; sudo dmesg | tail -3',
+              evidenceId: 'E05'
+            },
+            {
+              id: 'step-2-4-3',
+              code: 'Paso 2.4.3',
+              env: 'EC2 Instance Connect',
+              title: 'Montar con -o nouuid, verificar SHA-256 y restaurar /datos',
+              text: 'Monta omitiendo validación de UUID, comprueba las huellas originales contra <code class="font-mono text-sky-300">/restaurado</code>, reemplaza los archivos secuestrados en <code class="font-mono text-sky-300">/datos</code> y revalida integridad:',
+              command: 'sudo mount -o nouuid $DEV2 /restaurado && ls -l /restaurado && sed \'s#/datos/#/restaurado/#\' ~/huellas.txt | sha256sum -c && rm -f /datos/* && cp /restaurado/* /datos/ && sha256sum -c ~/huellas.txt',
+              evidenceId: 'E06'
+            }
+          ]
+        }
+      ],
+
+      tab3: [
+        {
+          id: 'sub-3-1',
+          title: 'Subsección 3.1 — Cifrar datos existentes mediante copia cifrada de instantánea',
+          badge: 'Consola AWS + EC2 Instance Connect',
+          description: 'Conversión de una instantánea sin cifrar en una copia protegida con AWS KMS (aws/ebs) y montaje transparente.',
+          steps: [
+            {
+              id: 'step-3-1-1',
+              code: 'Paso 3.1.1',
+              env: 'Consola AWS',
+              title: 'Crear copia cifrada de snap-expedientes-v1',
+              text: 'Ve a <strong>Instantáneas</strong> &rarr; selecciona <code class="font-mono text-amber-300">snap-expedientes-v1</code> &gt; <strong>Acciones &gt; Copiar instantánea</strong>:<br>• <strong>Descripción:</strong> <code class="font-mono text-amber-300">Copia cifrada de expedientes</code> | <strong>Región de destino:</strong> <code class="font-mono text-amber-300">us-east-1</code><br>• Marca la casilla <strong>Cifrar esta instantánea</strong> (Clave KMS predeterminada <code class="font-mono text-amber-300">aws/ebs</code>).<br>• <strong>Etiquetas:</strong> <code class="font-mono text-amber-300">Name = snap-expedientes-cifrada</code> y <code class="font-mono text-amber-300">clasificacion = expedientes</code> &rarr; <strong>Copiar instantánea</strong>.'
+            },
+            {
+              id: 'step-3-1-2',
+              code: 'Paso 3.1.2',
+              env: 'Consola AWS',
+              title: 'Crear y asociar vol-cifrado (/dev/sdh)',
+              text: 'Cuando <code class="font-mono text-amber-300">snap-expedientes-cifrada</code> diga <em>Completado</em> &rarr; <strong>Acciones &gt; Crear volumen a partir de una instantánea</strong> (<code class="font-mono text-amber-300">gp3</code>, <code class="font-mono text-amber-300">us-east-1a</code>, etiqueta <code class="font-mono text-amber-300">Name = vol-cifrado</code>; verifica en la tabla de Volúmenes que el nombre quedó asignado). Espera <em>Disponible</em> y asócialo a <code class="font-mono text-amber-300">clinicavida-app</code> como <code class="font-mono text-amber-300">/dev/sdh</code>.'
+            },
+            {
+              id: 'step-3-1-3',
+              code: 'Paso 3.1.3',
+              env: 'EC2 Instance Connect',
+              title: 'Montar vol-cifrado en /cifrado y validar cifrado transparente',
+              text: 'Verifica el tercer disco (<code class="font-mono text-sky-300">nvme3n1</code>), móntalo en <code class="font-mono text-sky-300">/cifrado</code> con <code class="font-mono text-sky-300">-o nouuid</code> y comprueba las huellas SHA-256 y la lectura transparente:',
+              command: 'lsblk -o NAME,SIZE,SERIAL,FSTYPE,MOUNTPOINT && DEV3=/dev/nvme3n1 && sudo mkdir -p /cifrado && sudo mount -o nouuid $DEV3 /cifrado && sed \'s#/datos/#/cifrado/#\' ~/huellas.txt | sha256sum -c && cat /cifrado/pacientes.csv'
+            }
+          ]
+        },
+        {
+          id: 'sub-3-2',
+          title: 'Subsección 3.2 — Activar cifrado predeterminado de EBS en la región',
+          badge: 'Consola AWS + AWS CloudShell',
+          description: 'Configuración preventiva a nivel de cuenta/región para que todo volumen nuevo nazca cifrado.',
+          steps: [
+            {
+              id: 'step-3-2-1',
+              code: 'Paso 3.2.1',
+              env: 'Consola AWS',
+              title: 'Habilitar cifrado siempre activo para volúmenes nuevos',
+              text: 'Ve a <strong>Panel de EC2 &gt; Atributos de la cuenta &gt; Protección y seguridad de datos &gt; Cifrado de EBS &gt; Administrar</strong>. Marca <strong>Habilitar («Cifrar siempre los volúmenes de EBS nuevos»)</strong> con la clave <code class="font-mono text-amber-300">aws/ebs</code> y guarda los cambios.'
+            },
+            {
+              id: 'step-3-2-2',
+              code: 'Paso 3.2.2',
+              env: 'AWS CloudShell',
+              title: 'Comprobar cifrado automático creando y eliminando un volumen de prueba',
+              text: 'Abre CloudShell, verifica <code class="font-mono text-sky-300">get-ebs-encryption-by-default</code>, crea un volumen de prueba sin parámetro de cifrado, verifica que KMS lo cifró automáticamente y elimínalo:',
+              command: 'aws ec2 get-ebs-encryption-by-default && PRUEBA=$(aws ec2 create-volume --availability-zone us-east-1a --size 1 --volume-type gp3 --query VolumeId --output text) && echo "Creado: $PRUEBA" && aws ec2 describe-volumes --volume-ids $PRUEBA --query \'Volumes[0].[VolumeId,Encrypted,KmsKeyId]\' && aws ec2 wait volume-available --volume-ids $PRUEBA && aws ec2 delete-volume --volume-id $PRUEBA && echo "Volumen de prueba eliminado"',
+              evidenceId: 'E07'
+            }
+          ]
+        },
+        {
+          id: 'sub-4',
+          title: 'Subsección 4 — Bloquear el acceso público a instantáneas de EBS',
+          badge: 'AWS CloudShell + Consola AWS',
+          description: 'Mitigación de fuga de datos por exposición accidental de snapshots sin cifrar.',
+          steps: [
+            {
+              id: 'step-4-1',
+              code: 'Paso 4.1',
+              env: 'AWS CloudShell',
+              title: 'Activar block-all-sharing y verificar rechazo al intentar compartir con "all"',
+              text: 'Recupera el ID de <code class="font-mono text-sky-300">snap-expedientes-v1</code>, consulta el estado actual, habilita el bloqueo total e intenta hacer pública la instantánea para comprobar el bloqueo:',
+              command: 'SNAP=$(aws ec2 describe-snapshots --owner-ids self --filters Name=tag:Name,Values=snap-expedientes-v1 --query \'Snapshots[0].SnapshotId\' --output text) && echo "Snapshot: $SNAP" && aws ec2 get-snapshot-block-public-access-state && aws ec2 enable-snapshot-block-public-access --state block-all-sharing && aws ec2 modify-snapshot-attribute --snapshot-id $SNAP --attribute createVolumePermission --operation-type add --group-names all',
+              evidenceId: 'E08'
+            },
+            {
+              id: 'step-4-2',
+              code: 'Paso 4.2',
+              env: 'Consola AWS',
+              title: 'Confirmar estado de bloqueo público en Atributos de la cuenta',
+              text: 'En la Consola EC2, ve a <strong>Panel de EC2 &gt; Atributos de la cuenta &gt; Protección y seguridad de datos</strong> y verifica que la sección <em>Bloquear el acceso público a las instantáneas de EBS</em> ya no muestra «No bloqueado».',
+              evidenceId: 'E09'
+            }
+          ]
+        },
+        {
+          id: 'sub-5',
+          title: 'Subsección 5 — LIMPIEZA OBLIGATORIA (Teardown — Evitar cargos)',
+          badge: 'Teardown Crítico',
+          isWarning: true,
+          description: 'Asegúrate de haber guardado todas tus evidencias antes de desmontar y eliminar los recursos creados.',
+          steps: [
+            {
+              id: 'step-l-1',
+              code: 'Paso L.1',
+              env: 'EC2 Instance Connect',
+              title: 'Desmontar los tres puntos de montaje en Linux',
+              text: 'Desmonta <code class="font-mono text-sky-300">/datos</code>, <code class="font-mono text-sky-300">/restaurado</code> y <code class="font-mono text-sky-300">/cifrado</code> en la instancia:',
+              command: 'sudo umount /datos /restaurado /cifrado'
+            },
+            {
+              id: 'step-l-2',
+              code: 'Paso L.2',
+              env: 'Consola AWS',
+              title: 'Desasociar y eliminar los 3 volúmenes de 1 GiB',
+              text: 'En <strong>EC2 &gt; Volúmenes</strong>, desasocia y elimina <code class="font-mono text-amber-300">vol-expedientes</code>, <code class="font-mono text-amber-300">vol-restaurado</code> y <code class="font-mono text-amber-300">vol-cifrado</code> (borra todos los de 1 GiB; <strong>no toques el volumen raíz de 8 GiB</strong>).'
+            },
+            {
+              id: 'step-l-3',
+              code: 'Paso L.3',
+              env: 'Consola AWS',
+              title: 'Eliminar las 2 instantáneas creadas',
+              text: 'En <strong>EC2 &gt; Instantáneas</strong>, elimina <code class="font-mono text-amber-300">snap-expedientes-v1</code> y <code class="font-mono text-amber-300">snap-expedientes-cifrada</code>.'
+            },
+            {
+              id: 'step-l-4',
+              code: 'Paso L.4',
+              env: 'Consola AWS',
+              title: 'Terminar instancia EC2 y eliminar Grupo de Seguridad',
+              text: 'Termina la instancia <code class="font-mono text-amber-300">clinicavida-app</code> y elimina el grupo de seguridad <code class="font-mono text-amber-300">sgClinicavida</code>. Deja activados el cifrado predeterminado y el bloqueo público de instantáneas (no tienen costo y son buenas prácticas).'
+            },
+            {
+              id: 'step-l-5',
+              code: 'Paso L.5',
+              env: 'AWS CloudShell',
+              title: 'Auditoría final en CloudShell: cero volúmenes y cero snapshots activos',
+              text: 'Verifica en <code class="font-mono text-sky-300">us-east-1</code> que ambas consultas devuelvan listas vacías (o únicamente el volumen raíz mientras la instancia termina):',
+              command: 'aws ec2 describe-volumes --query \'Volumes[].[VolumeId,State]\' --output table && aws ec2 describe-snapshots --owner-ids self --query \'Snapshots[].SnapshotId\''
+            }
+          ]
+        }
+      ]
+    };
+
+    const ANALYSIS_QUESTIONS = [
+      {
+        id: 'q1',
+        number: 1,
+        question: '¿Qué principio de la triada CIA protege cada control de la práctica: instantánea, cifrado de EBS, bloqueo de acceso público? Justifica cada uno.',
+        hint: 'Relaciona cada mecanismo con Disponibilidad (recuperación ante desastres/ransomware), Confidencialidad en reposo/tránsito (protección física y de almacenamiento subyacente) y Confidencialidad / Prevención de fuga externa (control de exposición de permisos).'
+      },
+      {
+        id: 'q2',
+        number: 2,
+        question: 'Si un atacante obtiene una sesión SSH en clinicavida-app, ¿el cifrado de EBS le impide leer pacientes.csv? ¿Qué controles sí lo mitigarían?',
+        hint: 'Recuerda cómo funciona el cifrado transparente del host Nitro: cuando el volumen está montado en el SO en ejecución, la instancia lee los datos en claro. Piensa en controles a nivel de SO, red, IAM y cifrado a nivel de aplicación.'
+      },
+      {
+        id: 'q3',
+        number: 3,
+        question: '¿Por qué ClínicaVida no puede simplemente «activar el cifrado» en vol-expedientes? Describe el procedimiento completo para migrar la aplicación al volumen cifrado con el menor tiempo de inactividad.',
+        hint: 'Un volumen EBS no se cifra in-place. El flujo es: detener escrituras (ventana breve de mantenimiento) -> crear snapshot final -> copiar snapshot marcando cifrado KMS -> crear volumen desde copia cifrada en la misma AZ -> desmontar/desasociar volumen antiguo -> asociar y montar volumen cifrado en /datos (actualizando /etc/fstab por UUID).'
+      },
+      {
+        id: 'q4',
+        number: 4,
+        question: 'Un volumen EBS existe en una sola zona de disponibilidad. ¿Qué pasa con los expedientes si falla us-east-1a? ¿Cómo ayudan las instantáneas y la copia a otra región?',
+        hint: 'Si cae us-east-1a, el volumen queda inaccesible mientras dure la interrupción de la AZ. Las instantáneas viven en S3 (almacenamiento regional redundante), permitiendo crear un nuevo volumen en us-east-1b; y la copia de snapshot entre regiones (Cross-Region Snapshot Copy) protege ante desastres regionales completos.'
+      },
+      {
+        id: 'q5',
+        number: 5,
+        question: 'En un ataque real de ransomware en la nube, ¿por qué el atacante intentaría borrar las instantáneas primero? ¿Qué permisos de IAM restringirías?',
+        hint: 'Si las instantáneas sobreviven, la víctima recupera sus datos sin pagar rescate. Restringirías ec2:DeleteSnapshot (aplicando principio de menor privilegio, condiciones con etiquetas, SCPs o AWS Backup Vault Lock / Papelera de reciclaje de AWS con reglas de retención).'
+      }
+    ];
+
+const INTRO="<strong>ClínicaVida</strong> es una red de consultorios médicos en Guadalajara cuya aplicación de expedientes clínicos corre en una instancia EC2 (<code class=\"text-amber-300 font-mono bg-slate-800/80 px-1.5 py-0.5 rounded\">clinicavida-app</code>) y almacena los archivos sensibles de pacientes en un volumen Amazon EBS adicional (<code class=\"text-amber-300 font-mono bg-slate-800/80 px-1.5 py-0.5 rounded\">vol-expedientes</code>).", CMP=[["Tipo", "Bloque (disco virtual montable)", "Objetos (archivos + metadatos)"], ["Alcance", "Una sola Zona de Disponibilidad (AZ)", "Regional (replicado en múltiples AZ)"], ["Acceso", "Una instancia EC2 (salvo Multi-Attach en io1/io2)", "API / HTTPS desde cualquier lugar autorizado"], ["Respaldo", "Instantáneas incrementales (almacenadas por AWS en S3)", "Control de versiones, replicación entre regiones"], ["Cifrado en reposo", "Opcional; se puede forzar con cifrado predeterminado", "SSE-S3 siempre activo por defecto desde 2023"], ["Exposición pública", "Instantáneas compartibles con «Público» (bloqueable)", "Buckets/objetos vía políticas y Block Public Access"]], XFS="<p><strong class=\"text-white\">1. UUID Duplicado en XFS:</strong> El volumen restaurado (<code class=\"font-mono text-amber-300\">vol-restaurado</code>) es una copia exacta bloque a bloque de <code class=\"font-mono text-amber-300\">vol-expedientes</code>, por lo que su sistema de archivos XFS conserva exactamente el mismo UUID que <code class=\"font-mono text-amber-300\">/datos</code>. Por seguridad, el kernel Linux rechaza montar dos sistemas de archivos con el mismo UUID simultáneamente. La opción <code class=\"font-mono text-emerald-400\">-o nouuid</code> omite esa validación de forma temporal (en entornos de producción permanentes se regeneraría con <code class=\"font-mono text-sky-400\">xfs_admin -U generate</code>).</p><p><strong class=\"text-white\">2. Carga diferida (Lazy Loading) vs. FSR:</strong> Los bloques de un volumen restaurado desde una instantánea se descargan de Amazon S3 de forma asíncrona la primera vez que se leen. Existe la función <em>Restauración rápida de instantáneas (FSR)</em> que elimina esa latencia inicial, pero genera un cargo elevado por hora: <strong>no la actives</strong>.</p><p><strong class=\"text-rose-400\">3. Advertencia crítica:</strong> En esta sección <strong>nunca</strong> ejecutes <code class=\"font-mono text-rose-300\">mkfs</code> sobre <code class=\"font-mono text-amber-300\">vol-restaurado</code>, ya que formatearía el disco y destruiría los datos respaldados.</p>";
+</script>
+<script>
+const $=s=>document.querySelector(s);
+const ICON={copy:'<rect x="9" y="9" width="11" height="11"/><path d="M5 15V4h11"/>',check:'<path d="M5 12l5 5 9-10"/>',menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',
+img:'<rect x="3" y="4" width="18" height="16"/><path d="M3 16l5-5 4 4 3-3 6 6"/>',trash:'<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>',moon:'<path d="M20 14A8 8 0 0110 4a8 8 0 1010 10z"/>',file:'<path d="M7 3h7l4 4v14H7zM14 3v4h4"/>',
+dl:'<path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/>',ul:'<path d="M12 15V4m0 0L8 8m4-4l4 4M5 20h14"/>'};
+const ic=n=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICON[n]}</svg>`;
+$('#menu').innerHTML=ic('menu');$('#b-th').innerHTML=ic('moon');$('#b-rs').innerHTML=ic('trash');$('#lb-x').innerHTML=ic('x');$('#ex-x').innerHTML=ic('x');
+$('#b-save').insertAdjacentHTML('afterbegin',ic('dl'));$('#b-load').insertAdjacentHTML('afterbegin',ic('ul'));$('#b-exp').insertAdjacentHTML('afterbegin',ic('file'));
+
+const STORAGE_KEY='clinicavida_ebs_state_v1',META_KEY='ebs_backup_meta',DB_NAME='ClinicaVidaEBS_DB';
+let db=null,evidenceImages={},meta={backupAt:null,dirty:false},lastEv=null;
+let appState={completedSteps:{},evidenceNotes:{},analysisAnswers:{},studentInfo:{name:'',group:''},activeTab:'tab1',evidenceFilter:'all'};
+const PARTS={tab1:['Parte 1','Preparación y volumen sin cifrar'],tab2:['Parte 2','Respaldo y recuperación ante ransomware'],tab3:['Parte 3','Cifrado, bloqueo público y limpieza']};
+const FLOW=[['Respaldo limpio','AWS CloudShell'],['Ataque simulado','EC2 Instance Connect'],['Restauración EBS','Consola AWS'],['Recuperación SHA-256','EC2 Instance Connect']];
+
+function escapeHtml(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'):''}
+const E=escapeHtml,clean=h=>String(h).replace(/\sclass="[^"]*"/g,''),pctOf=(a,b)=>b?Math.round(a/b*100):0;
+const envKind=e=>/CloudShell/.test(e)?'purple':/Instance Connect/.test(e)?'teal':/Teardown/.test(e)?'red':'blue';
+const tag=(t,k)=>`<span class="tg" style="--c:var(--${k||envKind(t)})">${E(t)}</span>`;
+const meter=(l,a,b)=>`<div class="meter"><div class="mh"><span>${l}</span><b>${a}/${b}</b></div><div class="bar${a&&a===b?' ok':''}"><i style="width:${pctOf(a,b)}%"></i></div></div>`;
+const allSteps=()=>['tab1','tab2','tab3'].flatMap(k=>CURRICULUM[k].flatMap(s=>s.steps));
+const answered=q=>(appState.analysisAnswers[q.id]||'').trim().length>0;
+function stats(){const st=allSteps(),sd=st.filter(s=>appState.completedSteps[s.id]).length,ev=Object.keys(EVIDENCES_META),ed=ev.filter(i=>evidenceImages[i]).length,qd=ANALYSIS_QUESTIONS.filter(answered).length,qt=ANALYSIS_QUESTIONS.length,T=st.length+ev.length+qt,D=sd+ed+qd;return{st:st.length,sd,et:ev.length,ed,qt,qd,T,D,pct:pctOf(D,T)}}
+
+/* ---------- persistencia ---------- */
+function persistMeta(){try{localStorage.setItem(META_KEY,JSON.stringify(meta))}catch(e){}}
+function loadLocalState(){try{const p=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');if(p)appState={...appState,...p};const m=JSON.parse(localStorage.getItem(META_KEY)||'null');if(m)meta=m}catch(e){}}
+function saveLocalState(dirty=true){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(appState))}catch(e){}if(dirty){meta.dirty=true;persistMeta()}renderSide()}
+const idb=(mode,fn)=>new Promise((res,rej)=>{if(!db)return rej();try{const r=fn(db.transaction('evidences',mode).objectStore('evidences'));r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}});
+const initDB=()=>new Promise((res,rej)=>{try{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=e=>{if(!e.target.result.objectStoreNames.contains('evidences'))e.target.result.createObjectStore('evidences',{keyPath:'id'})};r.onsuccess=e=>{db=e.target.result;res()};r.onerror=()=>rej(r.error)}catch(e){rej(e)}});
+async function putImg(r){evidenceImages[r.id]=r;try{await idb('readwrite',s=>s.put(r))}catch(e){}}
+async function delImg(id){delete evidenceImages[id];try{await idb('readwrite',s=>s.delete(id))}catch(e){}}
+async function clearImgs(){evidenceImages={};try{await idb('readwrite',s=>s.clear())}catch(e){}}
+
+/* ---------- utilidades ---------- */
+function showToast(m,t='info'){const c={success:'#42be65',error:'#fa4d56',warning:'#f1c21b',info:'#4589ff'}[t];const d=document.createElement('div');d.className='toast';d.style.setProperty('--c',c);d.textContent=m;$('#toasts').appendChild(d);setTimeout(()=>d.remove(),4200)}
+const openOv=id=>$('#'+id).classList.add('on'),closeOv=id=>$('#'+id).classList.remove('on');
+function toggleTheme(){const r=document.documentElement;r.classList.toggle('dark');try{localStorage.setItem('ebs_ui_theme',r.classList.contains('dark')?'dark':'light')}catch(e){}}
+
+/* ---------- copiar (los comandos viven en memoria, nunca en atributos HTML) ---------- */
+const CMD={};
+async function copyCmd(id,btn){
+  const t=CMD[id];let ok=false;
+  try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(t);ok=true}}catch(e){}
+  if(!ok){const ta=document.createElement('textarea');ta.value=t;ta.readOnly=true;ta.style.cssText='position:fixed;top:0;left:0;width:1px;height:1px;opacity:0';document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,t.length);try{ok=document.execCommand('copy')}catch(e){}ta.remove()}
+  const lab=btn.querySelector('span');btn.dataset.o=btn.dataset.o||lab.textContent;
+  if(ok){lab.textContent='¡Copiado!';showToast('Comando copiado al portapapeles','success')}
+  else{const pre=$('#c-'+id),r=document.createRange();pre.classList.remove('clip');r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r);lab.textContent='Seleccionado';showToast('No se pudo copiar automáticamente: el comando quedó seleccionado, presiona Ctrl+C.','warning')}
+  clearTimeout(btn._t);btn._t=setTimeout(()=>lab.textContent=btn.dataset.o,1800);
+}
+function toggleCode(b){const p=b.previousElementSibling,c=p.classList.toggle('clip');b.textContent=c?'Mostrar todo':'Mostrar menos'}
+function codeBlock(id,cmd,label){CMD[id]=cmd;const long=cmd.length>240||cmd.split('\n').length>6;
+  return `<div class="code"><div class="code-h"><span>${E(label)}</span><button class="btn ghost sm" onclick="copyCmd('${id}',this)">${ic('copy')}<span>Copiar comando</span></button></div><pre id="c-${id}"${long?' class="clip"':''}><code>${E(cmd)}</code></pre>${long?'<button class="btn ghost sm more" onclick="toggleCode(this)">Mostrar todo</button>':''}</div>`}
+
+/* ---------- evidencias ---------- */
+function processImageFile(id,f){if(!f||!f.type.startsWith('image/'))return showToast('Selecciona o pega un archivo de imagen válido.','warning');
+  const r=new FileReader();r.onload=async e=>{await putImg({id,dataUrl:e.target.result,fileName:EVIDENCES_META[id].fileName,originalName:f.name||'captura.png',updatedAt:new Date().toLocaleString('es-MX',{hour12:false})});meta.dirty=true;persistMeta();refreshEv(id);showToast(`Evidencia ${id} guardada.`,'success')};r.readAsDataURL(f)}
+function pickFile(id,i){if(i.files[0]){processImageFile(id,i.files[0]);i.value=''}}
+function dropImg(id,e){e.preventDefault();e.currentTarget.classList.remove('over');processImageFile(id,e.dataTransfer.files[0])}
+function dragZ(e,on){e.preventDefault();e.currentTarget.classList.toggle('over',!!on)}
+async function pasteBtn(id){lastEv=id;try{for(const it of await navigator.clipboard.read()){const t=it.types.find(x=>x.startsWith('image/'));if(t)return processImageFile(id,await it.getType(t))}showToast('No hay imagen en el portapapeles.','warning')}catch(e){showToast(`Zona ${id} activa: presiona Ctrl+V para pegar tu captura.`,'info')}}
+document.addEventListener('paste',e=>{if(!lastEv||/^(TEXTAREA|INPUT)$/.test(e.target.tagName))return;const it=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith('image/'));if(it){e.preventDefault();processImageFile(lastEv,it.getAsFile())}});
+document.addEventListener('focusin',e=>{const c=e.target.closest&&e.target.closest('[data-ev]');if(c)lastEv=c.dataset.ev});
+document.addEventListener('click',e=>{const c=e.target.closest&&e.target.closest('[data-ev]');if(c)lastEv=c.dataset.ev});
+async function rmImg(id){await delImg(id);meta.dirty=true;persistMeta();refreshEv(id)}
+function downloadSingleEvidence(id){const r=evidenceImages[id];if(r){const a=document.createElement('a');a.href=r.dataUrl;a.download=EVIDENCES_META[id].fileName;document.body.appendChild(a);a.click();a.remove()}}
+function setNote(id,v){appState.evidenceNotes[id]=v;saveLocalState()}
+function refreshEv(id){document.querySelectorAll(`[data-ev="${id}"]`).forEach(s=>s.innerHTML=evBlock(id,s.dataset.c==='1'));if(appState.activeTab==='tab4'&&appState.evidenceFilter!=='all')renderMain();renderSide()}
+function openLb(id){const r=evidenceImages[id],m=EVIDENCES_META[id];$('#lb-t').textContent=`${m.fileName} · ${m.title}`;$('#lb-img').src=r.dataUrl;$('#lb-dl').onclick=()=>downloadSingleEvidence(id);openOv('lb-ov')}
+function evBlock(id,center){const m=EVIDENCES_META[id],r=evidenceImages[id],n=appState.evidenceNotes[id]||'';
+  const file=`<input type="file" accept="image/*" hidden onchange="pickFile('${id}',this)">`;
+  return `<div class="ev${r?' has':''}"><div class="evh"><div><span class="cd">${id}</span> <span class="mono" style="font-size:12px">${E(m.fileName)}</span></div>${tag(r?'Completada':'Pendiente',r?'green':'gray')}</div>${center?`<h4>${E(m.title)}</h4>`:''}
+  <p class="cap"><b>Qué capturar:</b> ${E(m.whatToCapture)}</p>
+  ${r?`<img class="shot" src="${r.dataUrl}" alt="${E(m.fileName)}" onclick="openLb('${id}')"><div class="acts"><button class="btn ghost sm" onclick="openLb('${id}')">Ampliar</button><button class="btn ghost sm" onclick="downloadSingleEvidence('${id}')">Descargar</button><label class="btn ghost sm">Reemplazar${file}</label><button class="btn ghost sm dng" onclick="rmImg('${id}')">Eliminar</button><span class="mu">${E(r.updatedAt||'')}</span></div>`
+  :`<div class="zone" tabindex="0" ondrop="dropImg('${id}',event)" ondragover="dragZ(event,1)" ondragleave="dragZ(event,0)">${ic('img')}<p>Arrastra tu captura aquí, o haz clic y pega con <kbd>Ctrl</kbd> + <kbd>V</kbd></p><div class="acts"><label class="btn ter sm">Seleccionar imagen${file}</label><button class="btn ghost sm" onclick="pasteBtn('${id}')">Pegar del portapapeles</button></div></div>`}
+  <label class="lb">Observación técnica (opcional, se incluye en el reporte)</label><textarea rows="2" oninput="setNote('${id}',this.value)">${E(n)}</textarea>
+  ${center?`<div class="acts" style="justify-content:flex-start"><button class="btn ghost sm" onclick="goStep('${m.tab}','${m.stepId}')">Ir al paso</button></div>`:''}</div>`}
+
+/* ---------- vistas ---------- */
+function stepHtml(s){const d=!!appState.completedSteps[s.id];
+  return `<article class="st${d?' done':''}" id="${s.id}"><label class="ck"><input type="checkbox"${d?' checked':''} onchange="toggleStep('${s.id}',this.checked)" aria-label="Completar ${E(s.code)}"><i></i></label><div class="sb"><div class="sm"><span class="cd">${E(s.code)}</span>${tag(s.env)}</div><h4>${E(s.title)}</h4><p>${clean(s.text)}</p>${s.command?codeBlock(s.id,s.command,s.env):''}${s.evidenceId?`<div data-ev="${s.evidenceId}" data-c="0">${evBlock(s.evidenceId,false)}</div>`:''}</div></article>`}
+function secHtml(sec){const n=sec.steps.length,d=sec.steps.filter(s=>appState.completedSteps[s.id]).length;
+  return `<section class="sec${sec.isWarning?' warn':''}" id="sec-${sec.id}"><header><h3>${E(sec.title)}</h3><div class="sh">${tag(sec.badge)}<span class="cnt" id="sc-${sec.id}">${d}/${n}</span></div></header><p class="mu">${E(sec.description)}</p><div class="bar" id="sbar-${sec.id}"><i style="width:${pctOf(d,n)}%"></i></div>${sec.steps.map(stepHtml).join('')}</section>`}
+function intro(k){
+  if(k==='tab1')return `<p class="lead">${clean(INTRO)}</p><div class="note"><b>3 hallazgos críticos de la auditoría</b><ul><li>El volumen de expedientes <b>no está cifrado</b> en reposo.</li><li><b>No existen respaldos</b> (instantáneas) ante ransomware o borrado.</li><li>Se desconoce si las instantáneas pueden <b>exponerse públicamente</b> por error.</li></ul></div><details class="acc"><summary>Referencia: Amazon EBS vs. Amazon S3</summary><div class="tbl"><table><thead><tr><th>Característica</th><th>Amazon EBS</th><th>Amazon S3</th></tr></thead><tbody>${CMP.map(r=>`<tr>${r.map(c=>`<td>${clean(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></details>`;
+  if(k==='tab2')return `<ol class="flow">${FLOW.map(([a,b],i)=>`<li><b>${i+1}</b><span>${a}</span>${tag(b)}</li>`).join('')}</ol><p class="mu">Cada paso indica en qué entorno ejecutarlo.</p>`;
+  return `<p class="lead">Un volumen EBS existente sin cifrar <b>no puede cifrarse en el lugar</b>. Ruta de migración: instantánea sin cifrar → copia cifrada (KMS) → nuevo volumen cifrado → reemplazo.</p>`}
+function evView(){const f=appState.evidenceFilter||'all',ids=Object.keys(EVIDENCES_META),n=ids.filter(i=>evidenceImages[i]).length;
+  const show=ids.filter(i=>f==='all'||(f==='completed')===!!evidenceImages[i]);
+  const b=(v,l)=>`<button class="${f===v?'on':''}" onclick="setFilter('${v}')">${l}</button>`;
+  return `<h1>Evidencias</h1><p class="sub1">${n} de ${ids.length} capturas · selecciona una tarjeta y pega con Ctrl+V</p><div class="seg">${b('all','Todas ('+ids.length+')')}${b('pending','Faltantes ('+(ids.length-n)+')')}${b('completed','Completadas ('+n+')')}</div><div class="evg">${show.map(i=>`<div data-ev="${i}" data-c="1">${evBlock(i,true)}</div>`).join('')||'<p class="mu">No hay evidencias en este filtro.</p>'}</div>`}
+function qView(){const n=ANALYSIS_QUESTIONS.filter(answered).length;
+  return `<h1>Preguntas de análisis</h1><p class="sub1">${n} de ${ANALYSIS_QUESTIONS.length} respondidas · se guardan solas y van al reporte</p>`+ANALYSIS_QUESTIONS.map(q=>`<div class="q"><h4>${q.number}. ${E(q.question)}</h4><details><summary>Ver pista conceptual</summary><p>${E(q.hint)}</p></details><textarea rows="4" placeholder="Redacta tu análisis técnico…" oninput="setAnswer('${q.id}',this.value)">${E(appState.analysisAnswers[q.id]||'')}</textarea></div>`).join('')}
+function renderMain(){const v=appState.activeTab,el=$('#main');let h;
+  if(PARTS[v])h=`<h1>${PARTS[v][0]}</h1><p class="sub1">${PARTS[v][1]}</p>`+intro(v)+CURRICULUM[v].map(secHtml).join('')+(v==='tab2'?`<details class="acc" style="margin-top:48px"><summary>Nota técnica: UUID duplicado en XFS y carga diferida</summary><div>${clean(XFS)}</div></details>`:'');
+  else if(v==='qs')h=qView();else{appState.activeTab='tab4';h=evView()}
+  el.innerHTML=h}
+function renderSide(){const s=stats(),v=appState.activeTab;
+  const item=(id,l,c,ok)=>`<button class="${v===id?'on':''}" onclick="show('${id}')"><span>${l}</span><span class="c${ok?' ok':''}">${c}</span></button>`;
+  const parts=Object.keys(PARTS).map(k=>{const st=CURRICULUM[k].flatMap(x=>x.steps),d=st.filter(x=>appState.completedSteps[x.id]).length;
+    return item(k,`${PARTS[k][0]} · ${PARTS[k][1].split(',')[0].split(' y ')[0]}`,d+'/'+st.length,d===st.length)+(v===k?CURRICULUM[k].map(sec=>{const dd=sec.steps.filter(x=>appState.completedSteps[x.id]).length;return `<button class="sub" onclick="goSec('${k}','${sec.id}')"><span>${E(sec.title.replace(/^Subsecci[oó]n\s*/,''))}</span><span class="c${dd===sec.steps.length?' ok':''}" id="nc-${sec.id}">${dd}/${sec.steps.length}</span></button>`}).join(''):'')}).join('');
+  const bk=meta.dirty?['w','Hay avance que aún no está en un archivo .json']:meta.backupAt?['g','Último .json guardado: '+new Date(meta.backupAt).toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'})]:['','Aún no has descargado un .json'];
+  $('#side').innerHTML=`<div class="pan"><div class="big">${s.pct}<small>%</small></div><p class="mu">${s.D} de ${s.T} tareas completadas</p>${meter('Pasos',s.sd,s.st)}${meter('Evidencias',s.ed,s.et)}${meter('Preguntas de análisis',s.qd,s.qt)}<button class="btn pri block" onclick="goNext()"><span>Continuar donde quedé</span></button><div class="bk"><span class="dot ${bk[0]}"></span><span>${bk[1]}. Tu avance también se autoguarda en este navegador.</span></div></div><nav class="nv">${parts}${item('qs','Preguntas de análisis',s.qd+'/'+s.qt,s.qd===s.qt)}${item('tab4','Evidencias',s.ed+'/'+s.et,s.ed===s.et)}</nav>`;
+  $('#hp').textContent=`${s.pct}% · ${s.sd}/${s.st} pasos · ${s.ed}/${s.et} evidencias`;$('#hbar').style.width=s.pct+'%';$('#sdot').style.display=meta.dirty?'block':'none'}
+function updateSecs(){for(const k in PARTS)CURRICULUM[k].forEach(sec=>{const d=sec.steps.filter(s=>appState.completedSteps[s.id]).length,n=sec.steps.length,c=$('#sc-'+sec.id),b=$('#sbar-'+sec.id+' i');if(c)c.textContent=d+'/'+n;if(b)b.style.width=pctOf(d,n)+'%'})}
+function show(v,keep){appState.activeTab=v;saveLocalState(false);renderMain();renderSide();$('#side').classList.remove('open');if(!keep)scrollTo(0,0)}
+function goStep(k,id){show(k,true);requestAnimationFrame(()=>{const e=document.getElementById(id);if(e){e.scrollIntoView({behavior:'smooth',block:'center'});e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash')}})}
+function goSec(k,id){$('#side').classList.remove('open');const e=document.getElementById('sec-'+id);if(e)e.scrollIntoView({behavior:'smooth'})}
+function goNext(){for(const k in PARTS)for(const s of CURRICULUM[k])for(const st of s.steps)if(!appState.completedSteps[st.id])return goStep(k,st.id);
+  if(Object.keys(EVIDENCES_META).some(i=>!evidenceImages[i])){showToast('Pasos completos. Faltan evidencias.');appState.evidenceFilter='pending';return show('tab4')}
+  if(ANALYSIS_QUESTIONS.some(q=>!answered(q))){showToast('Faltan preguntas de análisis.');return show('qs')}
+  showToast('¡Todo completo! Guarda tu progreso y exporta el reporte.','success')}
+function toggleStep(id,c){appState.completedSteps[id]=c;saveLocalState();const e=document.getElementById(id);if(e)e.classList.toggle('done',c);updateSecs()}
+function setAnswer(id,v){appState.analysisAnswers[id]=v;saveLocalState()}
+function setFilter(f){appState.evidenceFilter=f;saveLocalState(false);renderMain()}
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='e'){e.preventDefault();openExport()}if(e.key==='Escape')document.querySelectorAll('.ov.on').forEach(o=>o.classList.remove('on'))});
+
+/* ---------- guardar / cargar progreso (.json) ---------- */
+    const REPORT_THEMES = [
+      { id:'carbon', name:'IBM Carbon', v:{bg:'#f4f4f4',paper:'#ffffff',ink:'#161616',muted:'#525252',accent:'#0f62fe',band:'#161616',onband:'#f4f4f4',onaccent:'#ffffff',line:'#e0e0e0',soft:'#f4f4f4',font:'"IBM Plex Sans","Helvetica Neue",Arial,sans-serif',head:'"IBM Plex Sans","Helvetica Neue",Arial,sans-serif',radius:'0px',ok:'#198038',warn:'#8e6a00'} },
+      { id:'aws', name:'Consola AWS', v:{bg:'#eef2f7',paper:'#ffffff',ink:'#0f172a',muted:'#475569',accent:'#ff9900',band:'#232f3e',onband:'#ffffff',onaccent:'#111827',line:'#cbd5e1',soft:'#f1f5f9',font:'"Segoe UI",Roboto,Arial,sans-serif',head:'"Segoe UI",Roboto,Arial,sans-serif',radius:'12px',ok:'#047857',warn:'#b45309'} },
+      { id:'editorial', name:'Editorial', v:{bg:'#efe8da',paper:'#fffdf8',ink:'#2b2118',muted:'#6b5b4b',accent:'#9b2c2c',band:'#7f1d1d',onband:'#fff7ed',onaccent:'#ffffff',line:'#decfb8',soft:'#f7f0e2',font:'Georgia,"Times New Roman",serif',head:'Georgia,"Times New Roman",serif',radius:'4px',ok:'#166534',warn:'#9a3412'} },
+      { id:'terminal', name:'Terminal', v:{bg:'#050a06',paper:'#0b140d',ink:'#d1fae5',muted:'#86c9a0',accent:'#22c55e',band:'#052e16',onband:'#bbf7d0',onaccent:'#04130a',line:'#14532d',soft:'#0f2416',font:'ui-monospace,Consolas,"Courier New",monospace',head:'ui-monospace,Consolas,"Courier New",monospace',radius:'2px',ok:'#4ade80',warn:'#fbbf24'} },
+      { id:'nordic', name:'Nórdico', v:{bg:'#f8fafc',paper:'#ffffff',ink:'#1e293b',muted:'#64748b',accent:'#0284c7',band:'#e0f2fe',onband:'#0c4a6e',onaccent:'#ffffff',line:'#e2e8f0',soft:'#f1f5f9',font:'"Helvetica Neue",Arial,sans-serif',head:'"Helvetica Neue",Arial,sans-serif',radius:'8px',ok:'#0f766e',warn:'#b45309'} },
+      { id:'sunset', name:'Atardecer', v:{bg:'#fff1e6',paper:'#fffaf5',ink:'#431407',muted:'#9a3412',accent:'#ea580c',band:'linear-gradient(135deg,#f97316,#db2777)',onband:'#ffffff',onaccent:'#ffffff',line:'#fed7aa',soft:'#ffedd5',font:'"Trebuchet MS","Segoe UI",sans-serif',head:'"Trebuchet MS","Segoe UI",sans-serif',radius:'16px',ok:'#15803d',warn:'#c2410c'} },
+      { id:'forest', name:'Bosque', v:{bg:'#e8f0ea',paper:'#fbfdfb',ink:'#14291a',muted:'#4d6b57',accent:'#15803d',band:'#14532d',onband:'#dcfce7',onaccent:'#ffffff',line:'#c4dccb',soft:'#eef6f0',font:'Cambria,Georgia,serif',head:'"Segoe UI",Arial,sans-serif',radius:'10px',ok:'#166534',warn:'#a16207'} },
+      { id:'violet', name:'Violeta', v:{bg:'#f1edff',paper:'#ffffff',ink:'#1e1b4b',muted:'#5b5690',accent:'#7c3aed',band:'linear-gradient(135deg,#4c1d95,#7c3aed)',onband:'#ffffff',onaccent:'#ffffff',line:'#ddd6fe',soft:'#f5f3ff',font:'Verdana,"Segoe UI",sans-serif',head:'Verdana,"Segoe UI",sans-serif',radius:'14px',ok:'#047857',warn:'#b45309'} },
+      { id:'blueprint', name:'Blueprint', v:{bg:'#082038',paper:'#0d3358',ink:'#e0f2fe',muted:'#93c5fd',accent:'#fde047',band:'#061a2f',onband:'#e0f2fe',onaccent:'#082038',line:'#1d5185',soft:'#0a2a4a',font:'"Courier New",ui-monospace,monospace',head:'"Courier New",ui-monospace,monospace',radius:'0px',ok:'#6ee7b7',warn:'#fcd34d'} }
+    ];
+    const EXPORT_LAYOUTS = { head:['banner','rule','center'], card:['box','flat','shadow'], table:['zebra','lines'] };
+    const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+function openExport(){$('#export-student-name').value=appState.studentInfo.name||'';$('#export-student-group').value=appState.studentInfo.group||'';const sel=$('#export-theme');
+  if(!sel.options.length)sel.innerHTML='<option value="random">Aleatorio (distinto en cada reporte)</option>'+REPORT_THEMES.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+  const s=stats();$('#export-summary-pill').textContent=`Incluye ${s.ed}/${s.et} evidencias y ${s.qd}/${s.qt} preguntas respondidas.`;openOv('export-modal')}
+function closeExportModal(){closeOv('export-modal')}
+    function chooseReportStyle() {
+      const sel = document.getElementById('export-theme').value;
+      let theme, lay;
+      if (sel === 'random') {
+        let last = ''; try { last = localStorage.getItem('ebs_last_theme') || ''; } catch (e) {}
+        theme = pickRandom(REPORT_THEMES.filter((t) => t.id !== last));
+        lay = { head: pickRandom(EXPORT_LAYOUTS.head), card: pickRandom(EXPORT_LAYOUTS.card), table: pickRandom(EXPORT_LAYOUTS.table) };
+      } else {
+        theme = REPORT_THEMES.find((t) => t.id === sel) || REPORT_THEMES[0];
+        lay = { head: 'banner', card: 'box', table: 'zebra' };
+      }
+      try { localStorage.setItem('ebs_last_theme', theme.id); } catch (e) {}
+      return { theme, lay };
+    }
+
+    function collectReportData() {
+      const studentName = document.getElementById('export-student-name').value.trim();
+      const studentGroup = document.getElementById('export-student-group').value.trim();
+      appState.studentInfo = { name: studentName, group: studentGroup };
+      saveLocalState();
+      let totalSteps = 0, doneSteps = 0;
+      ['tab1', 'tab2', 'tab3'].forEach((k) => CURRICULUM[k].forEach((s) => s.steps.forEach((st) => {
+        totalSteps++; if (appState.completedSteps[st.id]) doneSteps++;
+      })));
+      const evidences = Object.keys(EVIDENCES_META).map((id) => ({
+        meta: EVIDENCES_META[id], rec: evidenceImages[id] || null, note: (appState.evidenceNotes[id] || '').trim()
+      }));
+      const questions = ANALYSIS_QUESTIONS.map((q) => ({ q, ans: (appState.analysisAnswers[q.id] || '').trim() }));
+      return {
+        studentName, studentGroup, totalSteps, doneSteps, evidences, questions,
+        evDone: evidences.filter((e) => e.rec).length,
+        nowStr: new Date().toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' })
+      };
+    }
+
+    function reportCss(th, lay) {
+      const vars = Object.entries(th.v).map(([k, x]) => `--${k}:${x}`).join(';');
+      return `:root{${vars}}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+html,body{margin:0;background:var(--bg)}
+body{font-family:var(--font);color:var(--ink);line-height:1.55;padding:32px 18px}
+.wrap{max-width:960px;margin:0 auto;background:var(--paper);padding-bottom:36px;border-radius:var(--radius);border:1px solid var(--line)}
+.body{padding:4px 40px 0}
+.h{padding:34px 40px 26px}
+.kick{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.h h1{margin:8px 0 12px;font-family:var(--head);font-size:28px;line-height:1.2}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px}
+.chips{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.chip{font-size:12px;font-weight:700;padding:4px 11px;border-radius:999px;border:1px solid currentColor}
+.h-banner .h{background:var(--band);color:var(--onband);border-radius:var(--radius) var(--radius) 0 0}
+.h-rule .h{margin:34px 40px 0;padding:0 0 22px 22px;border-left:8px solid var(--accent);border-bottom:1px solid var(--line)}
+.h-center .h{text-align:center;margin:34px 40px 0;padding:0 0 24px;border-bottom:4px double var(--accent)}
+.h-center .meta,.h-center .chips{justify-content:center}
+.h-rule .kick,.h-center .kick{color:var(--accent)}
+.h-rule .meta,.h-center .meta{color:var(--muted)}
+.h-rule .chip,.h-center .chip{color:var(--accent)}
+h2{font-family:var(--head);font-size:20px;margin:32px 0 14px;padding-bottom:6px;border-bottom:2px solid var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--soft);text-align:left}
+th,td{padding:8px 10px;border:1px solid var(--line)}
+.t-zebra tbody tr:nth-child(even){background:var(--soft)}
+.t-lines th,.t-lines td{border:0;border-bottom:1px solid var(--line)}
+.mono{font-family:ui-monospace,Consolas,monospace;font-size:12px}
+.ok{color:var(--ok);font-weight:700}.pend{color:var(--warn);font-weight:700}
+.card{border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:20px;background:var(--paper);break-inside:avoid}
+.c-flat .card{border:0;border-left:4px solid var(--accent);border-radius:0;background:var(--soft)}
+.c-shadow .card{border:0;box-shadow:0 6px 22px rgba(0,0,0,.16)}
+.card-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.tag{background:var(--accent);color:var(--onaccent);padding:3px 9px;border-radius:5px;font-weight:700;font-size:12px}
+.pill{font-size:12px;font-weight:700;background:var(--soft);padding:3px 10px;border-radius:999px}
+.c-flat .pill{background:var(--paper)}
+.card h3{margin:0 0 8px;font-family:var(--head);font-size:16px}
+.muted{color:var(--muted);font-size:13px;margin:0 0 10px}
+.shot{text-align:center;background:var(--soft);border-radius:8px;padding:10px;margin:10px 0}
+.c-flat .shot{background:var(--paper)}
+.shot img{max-width:100%;max-height:480px;border-radius:4px}
+.shot small{display:block;color:var(--muted);font-size:11px;margin-top:6px}
+.empty{padding:22px;text-align:center;border:2px dashed var(--line);border-radius:8px;color:var(--muted);font-size:13px;margin:10px 0}
+.note{border-left:4px solid var(--accent);background:var(--soft);padding:10px 12px;font-size:13px;margin-top:10px}
+.c-flat .note{background:var(--paper)}
+.ans{background:var(--soft);border-radius:8px;padding:12px;font-size:13px}
+.c-flat .ans{background:var(--paper)}
+footer{text-align:center;color:var(--muted);font-size:11px;margin-top:30px}
+@media print{@page{size:A4;margin:10mm}body{padding:0;background:var(--paper)}.wrap{border:0;border-radius:0;max-width:none;padding-bottom:0}.body{padding:0 4px}.h{padding:18px 20px 14px!important;margin:0!important}.h h1{font-size:22px;margin:4px 0 8px}h2{font-size:16px;margin:16px 0 8px;break-after:avoid}.card{break-inside:auto;padding:10px 12px;margin-bottom:10px}.card h3{break-after:avoid;font-size:14px;margin:0 0 4px}.card-top{break-after:avoid;margin-bottom:4px}.muted{margin:0 0 6px;font-size:12px}.shot{break-inside:avoid;padding:6px;margin:6px 0}.shot img{max-height:105mm;max-width:100%;width:auto}.note,.ans{break-inside:avoid}table{font-size:11px}th,td{padding:4px 8px}.empty{padding:10px;margin:6px 0}footer{margin-top:12px}}
+@media(max-width:640px){.body{padding:4px 18px 0}.h{padding:26px 20px 20px}}`;
+    }
+
+    function buildReportHtml(d, th, lay) {
+      const e = escapeHtml;
+      const rows = d.evidences.map(({ meta: m, rec }) => `<tr><td class="mono"><b>${m.id}</b></td><td>${e(m.part)}</td><td class="mono">${e(m.fileName)}</td><td>${e(m.env)}</td><td class="${rec ? 'ok' : 'pend'}">${rec ? 'Completada' : 'Pendiente'}</td></tr>`).join('');
+      const cards = d.evidences.map(({ meta: m, rec, note }) => `
+        <div class="card">
+          <div class="card-top"><div><span class="tag">${m.id}</span> <span class="mono muted">${e(m.fileName)}</span></div><span class="pill">${e(m.env)}</span></div>
+          <h3>${e(m.title)}</h3>
+          <p class="muted"><b>Criterio de captura:</b> ${e(m.whatToCapture)}</p>
+          ${rec ? `<div class="shot"><img src="${rec.dataUrl}" alt="${e(m.fileName)}" /><small>Capturado: ${e(rec.updatedAt || '')}</small></div>` : '<div class="empty">[Evidencia pendiente de captura]</div>'}
+          ${note ? `<div class="note"><b>Observación técnica:</b> ${e(note).replace(/\n/g, '<br>')}</div>` : ''}
+        </div>`).join('');
+      const qs = d.questions.map(({ q, ans }) => `
+        <div class="card"><h3>${q.number}. ${e(q.question)}</h3>
+          <div class="ans">${ans ? e(ans).replace(/\n/g, '<br>') : '<em class="muted">Sin respuesta registrada.</em>'}</div></div>`).join('');
+      return `<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Reporte-AWS-EBS-ClinicaVida</title><meta name="generator" content="Tracker EBS · estilo ${e(th.name)}" />
+<style>${reportCss(th, lay)}</style></head>
+<body class="h-${lay.head} c-${lay.card}"><div class="wrap t-${lay.table}">
+  <header class="h">
+    <div class="kick">Reporte de Laboratorio Cloud • Amazon Web Services</div>
+    <h1>Volúmenes Amazon EBS — Escenario ClínicaVida</h1>
+    <div class="meta">
+      ${d.studentName ? `<span><b>Estudiante / Equipo:</b> ${e(d.studentName)}</span>` : ''}
+      ${d.studentGroup ? `<span><b>Grupo / Materia:</b> ${e(d.studentGroup)}</span>` : ''}
+      <span><b>Fecha:</b> ${e(d.nowStr)}</span><span><b>Región:</b> us-east-1 (Norte de Virginia)</span>
+    </div>
+    <div class="chips"><span class="chip">Pasos: ${d.doneSteps} / ${d.totalSteps}</span><span class="chip">Evidencias: ${d.evDone} / 9</span></div>
+  </header>
+  <div class="body">
+    <h2>1. Resumen de evidencias recolectadas</h2>
+    <table><thead><tr><th>ID</th><th>Sección</th><th>Archivo</th><th>Entorno</th><th>Estado</th></tr></thead><tbody>${rows}</tbody></table>
+    <h2>2. Evidencias gráficas y observaciones técnicas</h2>${cards}
+    <h2>3. Preguntas de análisis técnico</h2>${qs}
+    <footer>Estilo visual: ${e(th.name)} · Generado el ${e(d.nowStr)}</footer>
+  </div>
+</div></body></html>`;
+    }
+
+    function imgExt(rec) { return ((rec.dataUrl.match(/^data:image\/(\w+)/) || [])[1] || 'png').replace('jpeg', 'jpg'); }
+
+    function buildReportMarkdown(d, imgRef) {
+      const cell = (s) => String(s).replace(/\|/g, '\\|');
+      const quote = (s) => s.split('\n').map((l) => `> ${l}`).join('\n');
+      const L = ['# Volúmenes Amazon EBS — Escenario ClínicaVida', '', '**Reporte de Laboratorio Cloud • Amazon Web Services**', ''];
+      if (d.studentName) L.push(`- **Estudiante / Equipo:** ${d.studentName}`);
+      if (d.studentGroup) L.push(`- **Grupo / Materia:** ${d.studentGroup}`);
+      L.push(`- **Fecha de generación:** ${d.nowStr}`, '- **Región AWS:** us-east-1 (Norte de Virginia)',
+        `- **Pasos completados:** ${d.doneSteps} / ${d.totalSteps}`, `- **Evidencias recolectadas:** ${d.evDone} / 9`, '',
+        '## 1. Resumen de evidencias recolectadas', '', '| ID | Sección | Archivo | Entorno | Estado |', '|---|---|---|---|---|');
+      d.evidences.forEach(({ meta: m, rec }) => L.push(`| ${m.id} | ${cell(m.part)} | \`${m.fileName}\` | ${cell(m.env)} | ${rec ? '✅ Completada' : '⏳ Pendiente'} |`));
+      L.push('', '## 2. Evidencias gráficas y observaciones técnicas', '');
+      d.evidences.forEach(({ meta: m, rec, note }) => {
+        L.push(`### ${m.title}`, '', `**${m.id}** · \`${m.fileName}\` · ${m.env}`, '', `**Criterio de captura:** ${m.whatToCapture}`, '');
+        L.push(rec ? `![${m.fileName}](${imgRef(m, rec)})` : '_[Evidencia pendiente de captura]_', '');
+        if (note) L.push('**Observación técnica:**', '', quote(note), '');
+      });
+      L.push('## 3. Preguntas de análisis técnico', '');
+      d.questions.forEach(({ q, ans }) => L.push(`### ${q.number}. ${q.question}`, '', ans ? quote(ans) : '_Sin respuesta registrada._', ''));
+      return L.join('\n');
+    }
+
+    function downloadBlob(blob, name) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    }
+
+    async function exportMarkdown(d) {
+      const base = 'Reporte-AWS-EBS-ClinicaVida';
+      if (!window.JSZip) {
+        const md = buildReportMarkdown(d, (m, rec) => rec.dataUrl);
+        downloadBlob(new Blob([md], { type: 'text/markdown;charset=utf-8' }), `${base}.md`);
+        showToast('JSZip no cargó (¿sin internet?): .md con imágenes incrustadas en base64.', 'info');
+        return;
+      }
+      const zip = new JSZip();
+      const names = {};
+      d.evidences.forEach(({ meta: m, rec }) => { if (rec) names[m.id] = `images/${m.fileName.replace(/\.\w+$/, '')}.${imgExt(rec)}`; });
+      zip.file(`${base}.md`, buildReportMarkdown(d, (m) => names[m.id]));
+      d.evidences.forEach(({ meta: m, rec }) => { if (rec) zip.file(names[m.id], rec.dataUrl.split(',')[1], { base64: true }); });
+      downloadBlob(await zip.generateAsync({ type: 'blob' }), `${base}.zip`);
+    }
+
+    function printPdf(d, th, lay) {
+      const frame = document.createElement('iframe');
+      frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+      document.body.appendChild(frame);
+      frame.onload = () => {
+        const w = frame.contentWindow;
+        const imgs = Array.from(w.document.images);
+        Promise.all(imgs.map((i) => i.complete ? 1 : new Promise((r) => { i.onload = i.onerror = r; }))).then(() => {
+          const oldTitle = document.title;
+          document.title = 'Reporte-AWS-EBS-ClinicaVida';
+          w.addEventListener('afterprint', () => { document.title = oldTitle; setTimeout(() => frame.remove(), 500); });
+          w.focus(); w.print();
+        });
+      };
+      frame.srcdoc = buildReportHtml(d, th, lay);
+    }
+
+    async function runExport() {
+      const fmt = (document.querySelector('input[name="exp-format"]:checked') || {}).value || 'html';
+      try {
+        const d = collectReportData();
+        const { theme, lay } = chooseReportStyle();
+        if (fmt === 'html') downloadBlob(new Blob([buildReportHtml(d, theme, lay)], { type: 'text/html;charset=utf-8' }), 'Reporte-AWS-EBS-ClinicaVida.html');
+        else if (fmt === 'md') await exportMarkdown(d);
+        else printPdf(d, theme, lay);
+        closeExportModal();
+        showToast(fmt === 'md' ? 'Markdown exportado (.zip con imágenes).' : `Reporte ${fmt.toUpperCase()} listo · estilo «${theme.name}» (${lay.head}/${lay.card}/${lay.table})`, 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('No se pudo generar el reporte.', 'error');
+      }
+    }
+
+function saveProgress(){try{
+  const payload={version:1,exportedAt:new Date().toISOString(),appState,evidenceImages};
+  downloadBlob(new Blob([JSON.stringify(payload)],{type:'application/json'}),`Progreso-AWS-EBS-ClinicaVida-${new Date().toISOString().slice(0,10)}.json`);
+  meta={backupAt:payload.exportedAt,dirty:false};persistMeta();renderSide();showToast('Progreso guardado en un archivo .json.','success')}catch(e){console.error(e);showToast('No se pudo generar el archivo .json.','error')}}
+function loadProgress(ev){const f=ev.target.files&&ev.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=async()=>{try{const p=JSON.parse(r.result);if(!p||typeof p.appState!=='object'||!p.appState)throw new Error('formato');const a=p.appState;
+    appState={...appState,...a,completedSteps:a.completedSteps||{},evidenceNotes:a.evidenceNotes||{},analysisAnswers:a.analysisAnswers||{},studentInfo:a.studentInfo||{name:'',group:''}};
+    await clearImgs();for(const id of Object.keys(p.evidenceImages||{})){const x=p.evidenceImages[id];if(x&&x.dataUrl&&EVIDENCES_META[id])await putImg(x)}
+    meta={backupAt:p.exportedAt||null,dirty:false};persistMeta();saveLocalState(false);show(appState.activeTab||'tab1',true);const s=stats();showToast(`Progreso cargado: ${s.sd}/${s.st} pasos, ${s.ed}/${s.et} evidencias.`,'success')}
+    catch(e){console.error(e);showToast('Ese archivo no es un progreso válido de esta práctica.','error')}finally{ev.target.value=''}};r.readAsText(f)}
+async function confirmReset(){try{localStorage.removeItem(STORAGE_KEY)}catch(e){}await clearImgs();
+  appState={completedSteps:{},evidenceNotes:{},analysisAnswers:{},studentInfo:{name:'',group:''},activeTab:'tab1',evidenceFilter:'all'};meta={backupAt:meta.backupAt,dirty:false};persistMeta();closeOv('reset-ov');show('tab1');showToast('Práctica reiniciada.','info')}
+
+window.addEventListener('DOMContentLoaded',async()=>{loadLocalState();try{await initDB();(await idb('readonly',s=>s.getAll())||[]).forEach(r=>evidenceImages[r.id]=r)}catch(e){}show(appState.activeTab||'tab1',true)});
+</script>
+</body>
+</html>
